@@ -5,7 +5,8 @@ OmicOS 生态的中文开发者教程，使用 [Sphinx](https://www.sphinx-doc.o
 
 ## 在线阅读
 
-托管于 ReadTheDocs（待发布）。
+[primordecode.github.io/omicos-develop-tutorial](https://primordecode.github.io/omicos-develop-tutorial/)
+（GitHub Pages，每次 main 合并自动重建）。
 
 ## 本地构建
 
