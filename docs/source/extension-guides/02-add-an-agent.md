@@ -54,6 +54,13 @@ icon: 📊
 id: biostat_reviewer
 name: Biostat Reviewer
 tier: community
+category: review
+category_order: 2
+summary: 统计 / 曲线拟合审查员 — 替已完成的分析做最后一道把关。
+use_when: 用户跑完 DEG / survival / biomarker / dose-response，想做 final sanity pass 时。
+example_prompts:
+  - "我刚跑完一个 DEG 分析（n=8, padj<0.05, log2FC>1），帮我审一下统计有没有问题"
+  - "帮我看下这个 ROC，AUC 0.78，n=120，结论可不可靠"
 toolsets:
   - file_manager
   - web
@@ -116,13 +123,21 @@ them.
 
 ## 模板中的关键字段
 
-### `description`
+### `description` / `summary` / `use_when` / `example_prompts`
 
-这是 SPA 卡片显示的副标题。**LLM 不读 description**——LLM 读的是正文
-（`---` 之后那部分）。但用户读 description 来决定切谁。两条经验：
+这四个字段都是给 SPA 卡片用的——**LLM 一个都不读**（LLM 读的是
+`---` 之后的正文）。区别：
 
-- 第一句**用一名词短语**说"我是谁"
-- 第二句**用动词短语**说"什么时候选我"
+| 字段 | 用途 | 写作风格 |
+|---|---|---|
+| `description` | 英文一行，admin 早期就有 | 名词短语 + 动词短语，≤ 280 字符 |
+| `summary` | 中文一行，2026-05 新增（PR admin #12） | "我是谁 + 我的一句话价值" |
+| `use_when` | "什么时候选我" | 用户视角的场景描述，单句 |
+| `example_prompts` | 卡片底部一键示例 | 用户口吻 ≤ 30 字的提问，2-3 条 |
+
+为什么要四个字段？因为 SPA Agent 卡片的不同位置有不同显示：标题旁是
+`summary`，hover 出来的浮层是 `use_when` + `example_prompts`，
+description 用作 fallback / 兼容老客户端。
 
 ### `toolsets`
 

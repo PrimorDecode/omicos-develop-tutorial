@@ -16,6 +16,13 @@ icon: 🔍
 id: literature_scout
 name: Literature Scout
 tier: community
+category: literature
+category_order: 2
+summary: 文献侦察员 — 给一个领域，回一份近期重要论文 + 撤稿风险扫描。
+use_when: 用户要做 lit review、对比近期工作、查作者过往撤稿史时。
+example_prompts:
+  - "调研一下最近 colorectal cancer immunotherapy 的进展。"
+  - "这个作者过去 5 年的论文里有没有被 retract 的？"
 toolsets:
   - file_manager
   - web
@@ -40,9 +47,23 @@ specialist. ...（正文是它的人格 + 工作流）
 | `name` | UI 显示用的人类名字 |
 | `icon` | 单 emoji 字符，UI 卡片头像 |
 | `tier` | `community` / `pro_agent` / `pro_cloud` / `lab` / ...，决定订阅门槛 |
+| `category` | 分类 id（如 `single_cell_analysis`、`literature`），决定 SPA Agent 页放哪一行 |
+| `category_order` | 同分类内的排序（小者靠前）；分类内最小值还决定该分类整行的优先级 |
+| `summary` | SPA Agent 卡片中文副标题，**LLM 不读** — 仅 UI 用 |
+| `use_when` | SPA 卡片"什么时候选我"的提示行，**LLM 不读** |
+| `example_prompts` | SPA 卡片底部的示例提问，点一下塞进 composer |
 | `toolsets` | 这个 agent 能用的工具 *组*——见下文 |
 | `skills` | 这个 agent 能看到的 skill *白名单*——见 [Skill 系统](02-skills-system.md) |
 | 正文 | system prompt（去掉 frontmatter 后整段塞给 LLM） |
+
+```{admonition} summary / use_when / example_prompts 是 UI-only
+:class: tip
+
+这三个字段从 2026-05 才加进来，**不进 system prompt**，纯粹给前端
+卡片展示用（PR omicos-core #120 + admin #12）。`description` 仍然
+是 LLM 看不到、SPA 看得到的"短简介"——但它是英文 + 一行的设计，
+中文长简介推荐用 `summary`，触发场景用 `use_when`。
+```
 
 agent 文件的来源有三处，按优先级（早者覆盖晚者）：
 
@@ -81,17 +102,23 @@ team 里的非 active agent 不是摆设。当 active agent 在 system prompt
 
 ### 默认 team
 
-如果 SPA 没传 `team_members`：
+```{admonition} 2026-05 起：默认 team = admin catalog
+:class: important
 
-```rust
-vec![
-    "omicverse_omni".to_string(),
-    "omicverse_expert".to_string(),
-    "omicverse_spatial".to_string(),
-]
+PR omicos-core #119 之后，sidecar **不再硬编码** `[omni, expert, spatial]`
+兜底，也**不再强制把 `omicverse_omni` 注入**当前 team。`resolve_team`
+逻辑是：
+
+- 如果 SPA 传了非空 `team_members`：以它为准（PR #121 修复了之前 SPA
+  挑了子集 sidecar 仍然加载全部的 bug）。
+- 如果 SPA 没传：sidecar 用 admin cloud catalog 里**当前全部** agent
+  作为 team 候选 —— Omni 是不是被包括完全取决于 admin 现在还发不发它。
+- catalog 里找不到的 id（旧对话历史里的"前一回合是 X"指向已删除的
+  agent）会被构造成一个 `default_agent` 占位符，避免 prompt 渲染崩。
 ```
 
-这是 CLI 和老前端的兜底。新的桌面端总是显式传 team。
+CLI（`omicos chat`、`omicos cli_chat`）也走同一套逻辑，没有任何
+"内置兜底 team" 的概念了。
 
 ## Toolset
 

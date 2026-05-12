@@ -47,6 +47,12 @@
 ---
 name: github-star-history
 description: Fetch a GitHub repo's star-history time series via star-history.com API. Use when assessing community uptake of an open-source paper companion repo or comparing momentum across similar projects.
+category: literature
+category_order: 5
+summary: 拉一个 GitHub 仓库的 star 时间序列，判断社区接受度。
+use_when: 给论文配套仓库 / 工具仓库做"势能"评估时。
+example_prompts:
+  - "评估 https://github.com/scverse/scanpy 的社区势能"
 ---
 
 # GitHub Star History
@@ -91,10 +97,29 @@ Verdict:    accelerating | plateaued | declining
 
 把它存成 `/tmp/new-skills/github-star-history/SKILL.md`。
 
+```{admonition} frontmatter 字段一览
+:class: note
+
+| 字段 | LLM 读？ | 用途 |
+|---|---|---|
+| `name` | ✓ | skill 稳定 id，**必须**等于目录名（admin #36 起自动归一化） |
+| `description` | ✓ | 一行英文发现描述——LLM 决定调不调就靠它 |
+| `category` | ✗ | SPA Skills 页分类行；和 Agent 同一套机制 |
+| `category_order` | ✗ | 同分类内排序 |
+| `summary` | ✗ | SPA 卡片中文副标题 |
+| `use_when` | ✗ | SPA 卡片"什么时候用"提示 |
+| `example_prompts` | ✗ | SPA 卡片底部一键塞 composer |
+
+`summary` / `use_when` / `example_prompts` 是 2026-05 才加的 UI 字段，
+LLM 看不到，纯粹给用户挑 skill 时看。
+```
+
 ## 3. 推到 admin 服务器
 
 skill 的**唯一权威**是 admin 服务器。本地手工放进
 `~/.omicos/cloud-skills/` 也能跑，但下次 sync 会被 GC 删掉。
+（**`~/.omicos/skills/`** 这个家目录 root 在 2026-05 已经移除——
+见 [Skill 系统 § 4 个发现根](../concepts/02-skills-system.md)。）
 
 ```bash
 # 上传到 admin 数据目录
@@ -112,6 +137,15 @@ ssh root@23.226.134.91 \
 ```
 
 应该看到 skill 数量 +1。
+
+```{admonition} 更舒服的 admin SPA 路径
+:class: tip
+
+2026-05 的 admin 端有了**文件夹感知**的 skill 管理（PR admin #25、#26）：
+直接打开 admin 面板 → Skills → 上传 / 新建文件夹 / 改名 / 嵌套——
+所有 CRUD 都在 UI 完成，不用 scp。改名时 `name:` frontmatter 会被
+自动同步到新 dirname（PR admin #36）。
+```
 
 ## 4. 绑给 agent
 
@@ -193,7 +227,35 @@ description 说"Use when assessing community uptake"——切中场景，应该
 | `skill { name }` 返回 unknown | 同上 + skill id 拼写错（注意横杠 vs 下划线） |
 | skill 加载了但 LLM 不照办 | 正文里 imperative 不够强；试着首段写 "Use the commands below as your only path." |
 
+## 带附件文件的 skill
+
+如果你的 skill 需要 templates、reference 文档、CSV/JSON schema 等
+附件，直接放在 skill 目录里：
+
+```
+github-star-history/
+├── SKILL.md
+├── reference.md              # 给人看的额外文档（admin 用作版本变更说明）
+├── templates/
+│   └── summary.md.tmpl       # LLM 用 skill_resource 加载
+└── examples/
+    └── scanpy_response.json
+```
+
+admin `?include_files=1` 会把整个目录打包返回，客户端
+`cloud_skills.rs` 完整镜像到 `~/.omicos/cloud-skills/skills/<id>/`。
+SKILL.md 正文里指点 LLM 主动调用：
+
+```markdown
+When generating the final summary, fetch the canonical template via
+`skill_resource { name: "github-star-history", relpath: "templates/summary.md.tmpl" }`
+and fill it in.
+```
+
+详见 [Tool pipeline § skill_resource](../omicos-core/04-tool-pipeline.md)。
+
 ## 进一步阅读
 
 - [Skill 系统设计](../concepts/02-skills-system.md)
 - [写一个 agent](02-add-an-agent.md) — 配套绑定
+- [Tool pipeline](../omicos-core/04-tool-pipeline.md) — `skill_resource` 工具
