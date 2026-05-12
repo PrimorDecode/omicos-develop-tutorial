@@ -72,11 +72,28 @@ omicos-core 主动恢复的错误场景：
 | 场景 | 恢复策略 |
 |---|---|
 | Sync admin 网络断 | 跳过本次 sync，下一回合再试 |
+| Sync admin 返回 `AppendOutcome::Permanent`（4xx schema 错） | 游标推进到这批末尾，跳过坏 batch（PR #131） |
 | 内核 ZMQ heartbeat 丢失 | 重启内核子进程，标记当前 conversation 状态 |
+| **kernel worker stdin EPIPE** | 等同 stdout EOF，触发 respawn（PR #137） |
 | Provider 5xx | 当前 turn 失败 + 报错给 LLM/SPA，不重试（避免账单） |
 | Provider 429 | 同上 + 在错误信息里提示用户切模型 |
 | Tauri 主窗口外的子窗关闭 | 不杀 sidecar（PR #105） |
 | sidecar 异常退出 | Tauri 容器 800ms 退避后重启，最多 N 次 |
+
+## context-overflow 400 与 kernel 失败要分开
+
+PR omicos-core #133 修了一个长期 bug：**模型返回 400 context-length
+exceeded** 跟**内核挂掉**走的是同一个错误路径——SPA 都弹"内核异常，
+是否重启"，让用户重启了没用的子进程。
+
+现在 `runtime` 在解析 provider 400 时优先检查 message body 是否含
+`context_length_exceeded` / `maximum context` / `too long` 等 marker：
+
+- 是 → emit `context_overflow` 事件，SPA 弹"对话太长，建议 compact 或新开"
+- 否 → 走原 `kernel_fatal_error` / `provider_error` 路径
+
+写新的 provider 集成时，对应的 400 解析也要走这层 classifier
+（`runtime::classify_provider_400`），不然就走兜底 = 误报 kernel 死。
 
 ## 进一步
 

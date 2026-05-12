@@ -41,11 +41,24 @@ omicOS-ui 是一个 Tauri 2 桌面 app：内核是 Rust 写的窗口容器，UI 
 主要 route：
 
 - `/` — 主对话页
-- `/agents` — agent 卡片
-- `/skills` — skill 卡片
+- `/agents` — agent 卡片（2026-05 起按 category 分行，每行水平滚动）
+- `/skills` — skill 卡片（同 Agent 一套布局——每分类一行 + SVG 图标）
 - `/notebook` — 内核 / notebook
-- `/files` — workspace 文件树
-- `/settings` — API key、provider、image-host
+- `/files` — workspace 文件树（HTML 在沙箱 iframe 渲染、Markdown 默认渲染 + 可切原文）
+- `/settings` — API key、provider（含"在 picker 显示"逐 provider 开关）、image-host
+
+## 几个 2026-05 的关键交互组件
+
+- **GoalPill** + **GoalStatusBar** — composer 上方的长时程任务条；
+  `/goal <objective>` 一行直接启动。详见 [Goal 模式](../concepts/06-goal-mode.md)。
+- **PermissionPill** + **ToolApprovalCard** + **FullAccessConfirmDialog** —
+  codex-style 三档权限。详见 [权限模式](../concepts/07-permission-mode.md)。
+- **Agent 卡片新版** — 7 个 SVG 图标按 category 替换 emoji、中文 summary
+  + use_when + example_prompts 直接显示。PR omicOS-ui #111-#115。
+- **Notebook 4 bugs 修复合集**（PR #127） — 重命名 EINVAL、磁盘同步、
+  执行计数器重置。
+- **Markdown 文件预览** — 默认渲染、可切原文；HTML 文件用沙箱 iframe 加载，
+  同 workspace 的 CSS / JS / 图片自动 inline（PR #116、#117、#130、#132）。
 
 ## 不在前端做的事
 

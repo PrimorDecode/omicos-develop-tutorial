@@ -8,8 +8,24 @@
 ```{admonition} 本文档基于的版本
 :class: note
 
-omicos-core ≥ 0.2.0、omicOS-ui ≥ 0.1.0。某些章节的代码引用可能略快于
+omicos-core ≥ 0.2.0、omicOS-ui ≥ 0.1.0、omicos-admin、omicOS-server、
+omicos-server-ui 跟主干同步至 2026-05-12。某些章节的代码引用可能略快于
 最新 release，但核心架构相对稳定，所有结论都注明了源码路径，可对照阅读。
+```
+
+```{admonition} 2026-05 新功能速览
+:class: tip
+
+最近这一周加进来的大动作（详细说明散在各章节）：
+
+- **Goal 模式 / 长时程任务**（`/goal <objective>`）— 见 [Goal 模式](concepts/06-goal-mode.md)
+- **Codex 风格三档权限**（read_only / auto / full）— 见 [权限模式](concepts/07-permission-mode.md)
+- **Skill / Agent v2**：category、summary、use_when、example_prompts、per-agent skills 白名单、文件夹感知管理
+- **Cloud sync 增量化**：conversation `?since_seq` 游标 + `/ws/events` push
+- **Trajectory Q&A**：viewer 提问 + owner 审计两条 sheet
+- **kernel + tool pipeline**：`kernel_install` / `skill_resource` 新工具、>16 KB 输出 spool 到磁盘、stdin EPIPE 自动 respawn
+- **MiniMax provider**：`MINIMAX_API_KEY` 自动识别
+- **移动 / Web SPA 重做**：Groups 三级钻取替换 Profile、Trajectory 详情扁平化设计 — 见 [omicos-server-ui](operations/04-omicos-server-ui.md)
 ```
 
 ---
@@ -68,6 +84,8 @@ concepts/02-skills-system
 concepts/03-providers-and-protocols
 concepts/04-workspace-and-conversation
 concepts/05-cloud-sync
+concepts/06-goal-mode
+concepts/07-permission-mode
 ```
 
 ```{toctree}
@@ -120,6 +138,7 @@ extension-guides/05-tool-provider-plugin
 operations/01-desktop-bundle
 operations/02-admin-upgrade
 operations/03-data-migration
+operations/04-omicos-server-ui
 ```
 
 ```{toctree}

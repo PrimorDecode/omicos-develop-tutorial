@@ -30,9 +30,23 @@ OmicOS 实现了 3 种协议：
 
 | Protocol | 端点形态 | 兼容厂商 |
 |---|---|---|
-| `ChatCompletions` | `POST /v1/chat/completions`，OpenAI shape | OpenAI、DeepSeek、Moonshot/Kimi、Qwen、Zhipu、xAI、Groq、Mistral、Together、Fireworks、DeepInfra、Cerebras、Perplexity、OpenRouter、Ollama …… |
+| `ChatCompletions` | `POST /v1/chat/completions`，OpenAI shape | OpenAI、DeepSeek、Moonshot/Kimi、Qwen、Zhipu、xAI、Groq、Mistral、Together、Fireworks、DeepInfra、Cerebras、Perplexity、OpenRouter、Ollama、**MiniMax** …… |
 | `CodexResponses` | `POST /v1/responses`，OpenAI Responses API | OpenAI gpt-5、o1/o3/o4 reasoning 系列（含 server-side `web_search`） |
 | `GeminiCodeAssist` | Google Cloud Code Assist 内部协议 | Gemini 1.5 / 2.0 / 2.5（OAuth 模式） |
+
+```{admonition} 2026-05 新增：MiniMax
+:class: note
+
+PR omicos-core #138 + admin #37：
+
+- `MINIMAX_API_KEY` 在 env / `~/.omicos/auth.json` 配置后会被
+  `default_provider_from_available_key()` 自动识别（优先级
+  `DEEPSEEK > MINIMAX > OPENAI`）。
+- provider id：`"minimax"`。走 ChatCompletions 协议，零额外代码——
+  admin catalog 加一行就够。
+- admin 端 `models.json` 新增 MiniMax 模型条目（abab6.5、abab6.5s 等），
+  SPA 模型选择器自动出现。
+```
 
 每种协议一份 streaming handler。entry point 都是
 `stream_chat_completion(provider, messages, tools) -> SSE Stream`，
